@@ -1,14 +1,19 @@
 package com.devsuperior.Desafio5.services;
 
+import com.devsuperior.Desafio5.dto.UserDTO;
 import com.devsuperior.Desafio5.entities.Role;
 import com.devsuperior.Desafio5.entities.User;
 import com.devsuperior.Desafio5.projections.UserDetailsProjection;
 import com.devsuperior.Desafio5.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -36,4 +41,22 @@ public class UserService implements UserDetailsService {
 
         return user;
     }
+
+    protected User authenticate() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            Jwt jwtPrincipal = (Jwt) authentication.getPrincipal();
+            String username = jwtPrincipal.getClaim("username");
+            return repository.findByEmail(username).get();
+        } catch (Exception e) {
+            throw new UsernameNotFoundException("Email not found");
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public UserDTO getMe() {
+        User user = authenticate();
+        return new UserDTO(user);
+    }
+
 }
