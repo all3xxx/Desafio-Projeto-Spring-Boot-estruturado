@@ -1,6 +1,8 @@
 package com.devsuperior.Desafio5.services;
 
+import com.devsuperior.Desafio5.dto.CategoryDTO;
 import com.devsuperior.Desafio5.dto.ProductMinDTO;
+import com.devsuperior.Desafio5.entities.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -75,5 +77,12 @@ public class ProductService {
         entity.setDescription(dto.getDescription());
         entity.setPrice(dto.getPrice());
         entity.setImgUrl(dto.getImgUrl());
+        entity.getCategories().clear();
+
+        for(CategoryDTO catDto : dto.getCategories()) {
+            Category catEntity = new Category();
+            catEntity.setId(catDto.getId());
+            entity.getCategories().add(catEntity);
+        }
     }
 }
