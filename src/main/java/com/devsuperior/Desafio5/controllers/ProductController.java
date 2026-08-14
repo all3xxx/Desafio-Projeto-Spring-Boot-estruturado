@@ -1,6 +1,7 @@
 package com.devsuperior.Desafio5.controllers;
 
 import com.devsuperior.Desafio5.dto.ProductDTO;
+import com.devsuperior.Desafio5.dto.ProductMinDTO;
 import com.devsuperior.Desafio5.services.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +28,10 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<ProductDTO>> findAll(
+    public ResponseEntity<Page<ProductMinDTO>> findAll(
             @RequestParam(defaultValue = "") String name,
             Pageable pageable) {
-        Page<ProductDTO> dto = service.findAll(name, pageable);
+        Page<ProductMinDTO> dto = service.findAll(name, pageable);
         return ResponseEntity.ok(dto);
     }
 
