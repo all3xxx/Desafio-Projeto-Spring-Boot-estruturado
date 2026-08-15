@@ -1,12 +1,18 @@
 package com.devsuperior.Desafio5.services;
 
 import com.devsuperior.Desafio5.dto.OrderDTO;
-import com.devsuperior.Desafio5.entities.Order;
+import com.devsuperior.Desafio5.dto.OrderItemDTO;
+import com.devsuperior.Desafio5.entities.*;
+import com.devsuperior.Desafio5.repositories.OrderItemRepository;
 import com.devsuperior.Desafio5.repositories.OrderRepository;
+import com.devsuperior.Desafio5.repositories.ProductRepository;
 import com.devsuperior.Desafio5.services.exceptions.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.util.List;
 
 @Service
 public class OrderService {
@@ -14,10 +20,42 @@ public class OrderService {
     @Autowired
     private OrderRepository repository;
 
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private OrderItemRepository orderItemRepository;
+
     @Transactional(readOnly = true)
     public OrderDTO findById(Long id) {
         Order order = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado"));
         return new OrderDTO(order);
     }
+
+    @Transactional
+    public OrderDTO insert(OrderDTO dto) {
+        Order order = new Order();
+
+        order.setMoment(Instant.now());
+        order.setStatus(OrderStatus.WAITING_PAYMENT);
+
+        User user = userService.authenticate();
+        order.setClient(user);
+
+        for(OrderItemDTO itemDTO : dto.getItems()) {
+            Product product = productRepository.getReferenceById(itemDTO.getProductId());
+            OrderItem item = new OrderItem(order, product, itemDTO.getQuantity(), itemDTO.getPrice());
+            order.getItems().add(item);
+        }
+
+        order = repository.save(order);
+        List<OrderItem> orderItems = orderItemRepository.saveAll(order.getItems());
+
+        return new OrderDTO(order);
+    }
+
 
 }
